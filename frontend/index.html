@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Analizador de Probetas</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <!-- Pantalla de código de usuario -->
+  <div id="pantalla-codigo" class="pantalla activa">
+    <div class="contenedor">
+      <h1>🧪 Analizador de Probetas</h1>
+      <p class="subtitulo">Análisis de calidad de agua</p>
+
+      <div class="tarjeta">
+        <h2>Código de Usuario</h2>
+        <p class="texto-info">Introduce tu código asignado</p>
+        <input type="text" id="input-codigo" placeholder="ACUARIO001" maxlength="20" />
+        <button id="btn-guardar-codigo" class="btn-primario">
+          Continuar
+        </button>
+      </div>
+
+      <p class="texto-pequeño">Primera vez usando la app</p>
+    </div>
+  </div>
+
+  <!-- Pantalla principal -->
+  <div id="pantalla-principal" class="pantalla">
+    <div class="header">
+      <h1>🧪 Analizador</h1>
+      <div class="info-usuario">
+        <span id="nombre-usuario">ACUARIO001</span>
+        <button id="btn-cambiar-usuario" class="btn-icono">↻</button>
+      </div>
+    </div>
+
+    <!-- Estado de calibración -->
+    <div id="estado-calibracion" class="alerta alerta-info oculto">
+      <span id="texto-calibracion">Sin calibración activa</span>
+    </div>
+
+    <!-- Navegación por pasos -->
+    <div class="pasos-navegacion">
+      <div class="paso" data-paso="1">
+        <div class="paso-numero">1</div>
+        <div class="paso-texto">Calibrar Tabla</div>
+      </div>
+      <div class="paso" data-paso="2">
+        <div class="paso-numero">2</div>
+        <div class="paso-texto">Analizar Probeta</div>
+      </div>
+    </div>
+
+    <!-- PASO 1: Calibración -->
+    <div id="seccion-calibracion" class="seccion activa">
+      <div class="tarjeta">
+        <h2>📸 Paso 1: Calibrar Tabla API</h2>
+        <p class="texto-info">
+          Toma una foto de la tabla completa con los marcadores ArUco visibles
+        </p>
+
+        <div class="zona-captura">
+          <input type="file" id="input-foto-tabla" accept="image/*" capture="environment" class="oculto" />
+          <button id="btn-capturar-tabla" class="btn-captura">
+            📷 Capturar Tabla
+          </button>
+
+          <div id="preview-tabla" class="preview oculto">
+            <img id="img-preview-tabla" src="" alt="Preview" />
+            <button id="btn-procesar-tabla" class="btn-secundario">
+              ✓ Procesar Imagen
+            </button>
+          </div>
+        </div>
+
+        <!-- Resultado ArUco -->
+        <div id="resultado-aruco" class="resultado oculto">
+          <h3>Tabla Rectificada</h3>
+          <img id="img-tabla-rectificada" src="" alt="Tabla rectificada" />
+          <button id="btn-seleccionar-area" class="btn-primario">
+            → Seleccionar Área de Colores
+          </button>
+        </div>
+      </div>
+
+      <!-- Canvas para selección manual -->
+      <div id="modal-seleccion" class="modal oculto">
+        <div class="modal-contenido modal-grande">
+          <h3>Selecciona el área de la tabla</h3>
+          <p class="texto-info">
+            Arrastra para seleccionar toda la zona con los rectángulos de
+            colores
+          </p>
+
+          <div class="canvas-container">
+            <canvas id="canvas-seleccion"></canvas>
+          </div>
+
+          <div class="botones-modal">
+            <button id="btn-cancelar-seleccion" class="btn-secundario">
+              Cancelar
+            </button>
+            <button id="btn-confirmar-seleccion" class="btn-primario">
+              Confirmar Selección
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resultado extracción de colores -->
+      <div id="resultado-colores" class="resultado oculto">
+        <div class="alerta alerta-exito">
+          <strong>✓ Calibración completada</strong>
+          <p id="info-colores"></p>
+        </div>
+        <img id="img-debug-colores" src="" alt="Colores extraídos" />
+        <button id="btn-ir-analisis" class="btn-primario grande">
+          → Continuar al Análisis
+        </button>
+      </div>
+    </div>
+
+    <!-- PASO 2: Análisis de probetas -->
+    <div id="seccion-analisis" class="seccion oculto">
+      <div class="tarjeta">
+        <h2>🔬 Paso 2: Analizar Probeta</h2>
+
+        <!-- Selector de tipo de test -->
+        <div class="selector-test">
+          <label>Tipo de test:</label>
+          <div class="botones-test">
+            <button class="btn-test" data-tipo="pH">pH (6.0-7.6)</button>
+            <button class="btn-test" data-tipo="high_ph">
+              High pH (7.4-8.8)
+            </button>
+            <button class="btn-test" data-tipo="ammonia">
+              Amonio (0-8 ppm)
+            </button>
+            <button class="btn-test" data-tipo="nitrite">
+              Nitrito (0-5 ppm)
+            </button>
+            <button class="btn-test" data-tipo="nitrate">
+              Nitrato (0-160 ppm)
+            </button>
+          </div>
+        </div>
+
+        <div id="tipo-seleccionado" class="alerta alerta-info oculto">
+          Test seleccionado: <strong id="nombre-test"></strong>
+        </div>
+
+        <!-- Captura de probeta -->
+        <div class="zona-captura">
+          <!-- Input para cámara (foto directa) -->
+          <input type="file" id="input-foto-probeta" accept="image/*" capture="environment" class="oculto" />
+          <button id="btn-capturar-probeta" class="btn-captura" disabled>
+            📷 Tomar Foto
+          </button>
+
+          <!-- Input para galería / archivos -->
+          <input type="file" id="input-probeta" accept="image/*" class="oculto" />
+          <button id="btn-subir-probeta" class="btn-captura" disabled>
+            🖼️ Elegir de Galería
+          </button>
+
+          <!-- Preview de la probeta -->
+          <div id="preview-probeta" class="preview oculto">
+            <img id="img-preview-probeta" src="" alt="Preview" />
+            <button id="btn-procesar-probeta" class="btn-secundario">
+              ✓ Procesar Probeta
+            </button>
+          </div>
+        </div>
+
+
+        <!-- Modal para selección manual de probeta -->
+        <!-- Modal para selección manual de probeta -->
+        <div id="modal-seleccion-probeta" class="modal oculto">
+          <div class="modal-contenido modal-grande">
+            <h3>Selecciona el área de la probeta</h3>
+            <p class="texto-info">
+              1. Pulsa "Ampliar Zona" y selecciona el área a ampliar<br>
+              2. Luego selecciona la zona de líquido en la probeta
+            </p>
+
+            <!-- Control de zoom -->
+            <div class="controles-zoom">
+              <button id="btn-zoom-probeta" class="btn-zoom">🔍 Ampliar Zona</button>
+            </div>
+
+            <div class="canvas-container">
+              <canvas id="canvas-seleccion-probeta"></canvas>
+            </div>
+
+            <div class="botones-modal">
+              <button id="btn-cancelar-seleccion-probeta" class="btn-secundario">
+                Cancelar
+              </button>
+              <button id="btn-confirmar-seleccion-probeta" class="btn-primario">
+                Confirmar Selección
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resultado análisis -->
+        <div id="resultado-analisis" class="resultado oculto">
+          <div class="tarjeta-resultado">
+            <h3>Resultado del Análisis</h3>
+
+            <div class="valor-principal">
+              <span class="etiqueta-valor">Valor detectado:</span>
+              <span id="valor-detectado" class="numero-grande">7.2</span>
+              <span id="unidad-valor" class="unidad"></span>
+            </div>
+
+            <div class="info-adicional">
+              <div class="info-item">
+                <span class="label">Parámetro más cercano:</span>
+                <span id="parametro-cercano">pH 7.2</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Confianza:</span>
+                <span id="confianza-valor">95%</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Interpolado:</span>
+                <span id="interpolado-valor">No</span>
+              </div>
+              <div class="info-item">
+                <span class="label">Color RGB:</span>
+                <div class="muestra-color">
+                  <div id="muestra-color-box" class="color-box"></div>
+                  <span id="color-rgb-texto">RGB(120, 180, 90)</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="valores-cercanos">
+              <h4>Valores de referencia cercanos:</h4>
+              <div id="lista-valores-cercanos"></div>
+            </div>
+
+            <div class="botones-accion">
+              <button id="btn-guardar-medicion" class="btn-primario">
+                💾 Guardar Medición
+              </button>
+              <button id="btn-nueva-probeta" class="btn-secundario">
+                🔄 Nueva Probeta
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones de acción inferior -->
+    <div class="barra-inferior">
+      <button id="btn-historico" class="btn-inferior">📊 Histórico</button>
+      <button id="btn-recalibrar" class="btn-inferior">🔄 Recalibrar</button>
+    </div>
+  </div>
+
+  <!-- Modal de histórico -->
+  <div id="modal-historico" class="modal oculto">
+    <div class="modal-contenido modal-grande">
+      <div class="modal-header">
+        <h2>📊 Histórico de Mediciones</h2>
+        <button id="btn-cerrar-historico" class="btn-cerrar">×</button>
+      </div>
+
+      <div class="filtros-historico">
+        <button class="btn-filtro activo" data-filtro="todas">Todas</button>
+        <button class="btn-filtro" data-filtro="pH">pH</button>
+        <button class="btn-filtro" data-filtro="ammonia">Amonio</button>
+        <button class="btn-filtro" data-filtro="nitrite">Nitrito</button>
+        <button class="btn-filtro" data-filtro="nitrate">Nitrato</button>
+      </div>
+
+      <canvas id="canvas-grafica" class="grafica-canvas"></canvas>
+
+      <div id="lista-mediciones" class="lista-mediciones"></div>
+    </div>
+  </div>
+
+  <!-- Modal de guardar medición -->
+  <div id="modal-guardar" class="modal oculto">
+    <div class="modal-contenido">
+      <h3>Guardar Medición</h3>
+
+      <div class="form-group">
+        <label>Tipo de parámetro:</label>
+        <select id="select-tipo-guardar">
+          <option value="pH">pH</option>
+          <option value="high_ph">High Range pH</option>
+          <option value="ammonia">Amonio (ppm)</option>
+          <option value="nitrite">Nitrito (ppm)</option>
+          <option value="nitrate">Nitrato (ppm)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Valor:</label>
+        <input type="number" id="input-valor-guardar" step="0.01" placeholder="7.2" />
+      </div>
+
+      <div class="botones-modal">
+        <button id="btn-cancelar-guardar" class="btn-secundario">
+          Cancelar
+        </button>
+        <button id="btn-confirmar-guardar" class="btn-primario">
+          Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Indicador de carga -->
+  <div id="loading" class="loading oculto">
+    <div class="spinner"></div>
+    <p id="loading-texto">Procesando...</p>
+  </div>
+
+  <!-- Scripts -->
+  <!-- Adaptador de fechas para Chart.js -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script> -->
+
+  <!-- Chart.js -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script> -->
+
+  <!-- Firebase primero -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <!-- Tu JS después -->
+  <script src="app.js"></script>
+</body>
+
+</html>
