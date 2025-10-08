@@ -29,18 +29,17 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
-#CORS(app, resources={
- #      r"/*": {
-  #         "origins": [
-   #            "http://localhost:8080",
-    #           "http://127.0.0.1:8080",
-     #          "https://aresmartinezoscar-dev.github.io"
-      #     ],
-       #    "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        #   "allow_headers": ["Content-Type", "Authorization"]
-       #}
-   #})
+
+# ✅ CORS CORREGIDO - PERMITE TODO
+CORS(app)
+
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
+
 # Almacenamiento temporal de calibraciones (en memoria)
 calibraciones_activas = {}
 
@@ -92,6 +91,7 @@ def home():
         'calibraciones_activas': len(calibraciones_activas)
     })
 
+# ... (resto del código igual)
 @app.route('/detectar_aruco', methods=['POST'])
 def detectar_aruco():
     """PASO A2: Detectar ArUco y rectificar tabla"""
@@ -428,4 +428,5 @@ def verificar_calibracion():
 if __name__ == '__main__':
 
     app.run(debug=True, host='0.0.0.0', port=5000)
+
 
