@@ -1,5 +1,5 @@
 // NO usar imports ES6, cargar Firebase desde CDN
-const API_URL = 'http://localhost:5000';
+const API_URL = 'https://app-probetas-backend.onrender.com';
 
 // Esperar a que Firebase esté cargado
 let database;
@@ -1434,4 +1434,5 @@ function recalibrar() {
         mostrarSeccion('seccion-calibracion');
         actualizarEstadoCalibracion(false);
     }
+
 }
