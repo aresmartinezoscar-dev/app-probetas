@@ -1,5 +1,5 @@
 // NO usar imports ES6, cargar Firebase desde CDN
-const API_URL = 'https://app-probetas-backend.onrender.com';
+const API_URL = "https://danieldon.pythonanywhere.com";
 
 // Esperar a que Firebase esté cargado
 let database;
@@ -1436,3 +1436,4 @@ function recalibrar() {
     }
 
 }
+
